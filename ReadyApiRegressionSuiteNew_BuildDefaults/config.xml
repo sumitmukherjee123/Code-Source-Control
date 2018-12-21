@@ -1,0 +1,435 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description>ReadyApi Setup</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <org.biouno.unochoice.ChoiceParameter plugin="uno-choice@2.1">
+          <name>Environment</name>
+          <description>Please select build environment</description>
+          <randomName>choice-parameter-504977300330100</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1.46">
+              <script>def list = [] 
+
+list.add(&quot;staging&quot;)
+list.add(&quot;qacc&quot;)
+list.add(&quot;qasc&quot;)
+list.add(&quot;All&quot;)
+
+return list</script>
+              <sandbox>false</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1.46">
+              <script>return [&apos;error&apos;]</script>
+              <sandbox>false</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>ReadyApiRegressionSuiteNew_BuildDefaults</projectName>
+          <choiceType>PT_SINGLE_SELECT</choiceType>
+          <filterable>false</filterable>
+          <filterLength>1</filterLength>
+        </org.biouno.unochoice.ChoiceParameter>
+        <org.biouno.unochoice.ChoiceParameter plugin="uno-choice@2.1">
+          <name>TestProject</name>
+          <description>Please select Test Project</description>
+          <randomName>choice-parameter-493499370398800</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1.46">
+              <script>import groovy.io.FileType
+&quot;C:/TCS/Sumit/Approach-1_Latest_Update_Git/GitBranchWorking.bat&quot;.execute()
+sleep(1000)
+def path = &quot;C:/TCS/Sumit/Approach-1_Latest_Update_Git/Source/Working/DummyRepository1&quot;
+def list = [] 
+def dir = new File(path) 
+def defaultProject = &quot;SOAPUI_Jenkins.xml&quot;
+def defaultProjectIndex = 0;
+dir.eachFileMatch(~/.*.xml/) 
+{ 
+    file -&gt; list &lt;&lt; file
+    if(file.name.endsWith(defaultProject))
+	{
+		  defaultProjectIndex = list.indexOf(file)
+		  defaultProjectPath = file
+	}
+}
+if(defaultProjectIndex != 0)
+{
+	list.remove(defaultProjectIndex );
+	list.add(0, defaultProjectPath);
+}
+
+return list</script>
+              <sandbox>false</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1.46">
+              <script>return [&apos;error&apos;]</script>
+              <sandbox>false</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>ReadyApiRegressionSuiteNew_BuildDefaults</projectName>
+          <choiceType>PT_SINGLE_SELECT</choiceType>
+          <filterable>false</filterable>
+          <filterLength>1</filterLength>
+        </org.biouno.unochoice.ChoiceParameter>
+        <org.biouno.unochoice.CascadeChoiceParameter plugin="uno-choice@2.1">
+          <name>TestSuite</name>
+          <description>Select Test Suite to execute (Default Selection is &quot;All&quot;)</description>
+          <randomName>choice-parameter-493499388767300</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1.46">
+              <script>import groovy.xml.* 
+
+def path = TestProject
+
+def list = []
+
+list.add(&quot;All:selected&quot;)
+
+try { 
+   def nodes = new XmlSlurper().parse(new File(path))
+   nodes.children().each { 
+   if(it.name() == &quot;testSuite&quot;) 
+   list.add(it.@name.toString())
+  } 
+ 
+ return list 
+} 
+
+catch(Exception ex)
+{ 
+ return [ex.toString()] 
+}</script>
+              <sandbox>false</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1.46">
+              <script>return [&apos;All&apos;]</script>
+              <sandbox>false</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>ReadyApiRegressionSuiteNew_BuildDefaults</projectName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters>TestProject</referencedParameters>
+          <choiceType>PT_CHECKBOX</choiceType>
+          <filterable>false</filterable>
+          <filterLength>1</filterLength>
+        </org.biouno.unochoice.CascadeChoiceParameter>
+        <org.biouno.unochoice.CascadeChoiceParameter plugin="uno-choice@2.1">
+          <name>SWSIM Interface version</name>
+          <description>Select SWSIM interface version</description>
+          <randomName>choice-parameter-504608323320100</randomName>
+          <visibleItemCount>1</visibleItemCount>
+          <script class="org.biouno.unochoice.model.GroovyScript">
+            <secureScript plugin="script-security@1.46">
+              <script>import groovy.xml.* 
+
+// get selected environment
+def selectedEnvironment = Environment
+def endPoints= []
+
+// set staging environment
+if(selectedEnvironment == &quot;qacc&quot;)
+{
+  selectedEnvironment = &quot;client&quot;
+}
+else if(selectedEnvironment == &quot;qasc&quot;)
+{
+  selectedEnvironment = &quot;server&quot;
+}
+
+if( selectedEnvironment == &quot;All&quot;)
+{
+    
+}
+
+// invoke interface list provider web service
+try
+{
+def run = &quot;curl.exe -X POST &quot; + &quot;\&quot;http://qaauto05-v.corp.stamps.com/BVTAutomationService/AutomationService.svc/GetServiceVersions\&quot;&quot; + &quot; -H &quot; + &quot;\&quot;Content-Type:application/xml\&quot;&quot; + &quot; -d &quot; + &quot;\&quot;&lt;ServiceVersionRequest xmlns=&apos;http://Bridge.TestAutomation/2018/10&apos;&gt;&lt;Environment&gt;&quot; + selectedEnvironment + &quot;&lt;/Environment&gt;&lt;Farm&gt;SWSIM&lt;/Farm&gt;&lt;/ServiceVersionRequest&gt;\&quot;&quot;
+
+// call web service
+def response = run.execute().text
+       
+// parse web service response
+def verions= new XmlSlurper().parseText(response)
+               verions.&quot;ServiceVersions&quot;.&quot;ServiceVersion&quot;.each{    
+                serv = it.&quot;Service&quot;.text()
+     
+        endPoints.add( it.&quot;Version&quot;.text())  
+        
+  }
+//endPoints.add(&quot;https://swsim.staging.stamps.com/swsim/swsimv73.asmx&quot;)
+
+ // return interface version  
+ endPoints = endPoints.reverse()              
+ return  endPoints
+}
+catch(Exception ex)
+{ 
+     return [ex.toString()] 
+}</script>
+              <sandbox>false</sandbox>
+            </secureScript>
+            <secureFallbackScript plugin="script-security@1.46">
+              <script>return [&apos;All&apos;]</script>
+              <sandbox>false</sandbox>
+            </secureFallbackScript>
+          </script>
+          <projectName>ReadyApiRegressionSuiteNew_BuildDefaults</projectName>
+          <parameters class="linked-hash-map"/>
+          <referencedParameters>Environment</referencedParameters>
+          <choiceType>PT_SINGLE_SELECT</choiceType>
+          <filterable>false</filterable>
+          <filterLength>1</filterLength>
+        </org.biouno.unochoice.CascadeChoiceParameter>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <customWorkspace>C:\TCS\Sumit\Approach-1_Latest_Update_Git\Source\Working\DummyRepository1\Logs</customWorkspace>
+  <builders>
+    <hudson.plugins.groovy.Groovy plugin="groovy@2.0">
+      <scriptSource class="hudson.plugins.groovy.StringScriptSource">
+        <command>  import hudson.model.*
+  import groovy.io.FileType
+
+  def environment = System.getenv(&quot;Environment&quot;)
+  def testProject = System.getenv(&quot;TestProject&quot;)
+  def testSuite = System.getenv(&quot;TestSuite&quot;)
+  def swsimEndPoint = System.getenv(&quot;SWSIM Interface version&quot;)
+  def testRunner = &apos;&quot;C:/Program Files/SmartBear/ReadyAPI-2.4.0/bin/testrunner.bat&quot;&apos;
+  new File(&quot;C:/TCS/Sumit/Approach-1_Latest_Update_Git/Source/Working/DummyRepository1/Logs&quot;).mkdir();
+  File file1 = new File(&quot;C:/TCS/Sumit/Approach-1_Latest_Update_Git/Source/Working/DummyRepository1/Logs/MasterCommand.bat&quot;)
+  def swsimvercheck = &quot;5&quot;
+
+if(testSuite == null)
+{
+  testSuite = &quot;All&quot;
+}
+
+if(swsimEndPoint == null)
+{
+  swsimEndPoint = &quot;All&quot;
+}
+def envArr = []
+if(environment == &quot;All&quot;)
+{  
+ 	envArr=[&quot;staging&quot;,&quot;client&quot;,&quot;server&quot;]
+  	envDisp=[&quot;staging&quot;,&quot;qacc&quot;,&quot;qasc&quot;]
+}
+else
+{
+	envArr=[environment]
+}
+
+println swsimEndPoint
+
+
+if(swsimEndPoint == &quot;All&quot;)
+{  
+  def endPoints = []
+  def i = 0
+  def endPointarr = []
+  def endPointarrnew = []
+  envArr.each
+  { 
+    
+    String env = it
+    String envDis = envDisp[i]
+    
+    def run = &quot;curl.exe -X POST &quot; + &quot;\&quot;http://qaauto05-v.corp.stamps.com/BVTAutomationService/AutomationService.svc/GetServiceVersions\&quot;&quot; + &quot; -H &quot; + &quot;\&quot;Content-Type:application/xml\&quot;&quot; + &quot; -d &quot; + &quot;\&quot;&lt;ServiceVersionRequest xmlns=&apos;http://Bridge.TestAutomation/2018/10&apos;&gt;&lt;Environment&gt;&quot; + env + &quot;&lt;/Environment&gt;&lt;Farm&gt;SWSIM&lt;/Farm&gt;&lt;/ServiceVersionRequest&gt;\&quot;&quot;	
+	def response = run.execute().text
+    
+	// parse web service response
+	def verions= new XmlSlurper().parseText(response)
+        verions.&quot;ServiceVersions&quot;.&quot;ServiceVersion&quot;.each{                   
+		    endPoints.add(it.&quot;Endpoint&quot;.text())     
+  		} 
+    
+    def latestendpoint = endPoints.reverse()[0]
+   	endPointarr = latestendpoint.split(&apos;v&apos;)
+    def latestendpointmod = endPointarr[1]
+    endPointarr = latestendpointmod.split(&apos;\\.&apos;)
+    def latestendpointmodnew = endPointarr[0]
+    def testCommand = testRunner + &apos; &apos; + &apos;&quot;&apos; + testProject + &apos;&quot;&apos; + &apos; &apos; + &quot;-PServiceEndpoint=&quot; + &apos;&quot;&apos; + latestendpoint + &apos;&quot;&apos; + &apos; &apos; + &quot;-PRunTestSuites=&quot; + &apos;&quot;&apos; + testSuite + &apos;&quot;&apos; + &apos; &apos; + &quot;-Prunenvironment=&quot; + &apos;&quot;&apos; + envDis + &apos;&quot;&apos;  + &apos; &apos; + &quot;-Pswsimvernumber=&quot; + &apos;&quot;&apos; + latestendpointmodnew + &apos;&quot;&apos;       
+    println testCommand
+    File file = new File(&quot;C:/TCS/Sumit/Approach-1_Latest_Update_Git/Source/Working/DummyRepository1/Logs/Command_${env}.bat&quot;)
+    file.write(testCommand)
+    
+    def master =  &quot;Call&quot; + &quot; &quot; + &quot;C:/TCS/Sumit/Approach-1_Latest_Update_Git/Source/Working/DummyRepository1/Logs/Command_${env}.bat&quot; + &quot; &quot; + &apos;\n&apos; + &quot;timeout 10&quot; + &apos;\n&apos;
+    file1.append(master)
+    i++
+    
+  }
+}
+else
+{   
+    
+    def myIntegerObject = new Integer(swsimEndPoint);
+	def swsimEndPointup = myIntegerObject.toString();
+
+	if(swsimEndPointup &lt;= swsimvercheck)
+	{
+  		swsimEndPointup = &quot;https://swsim.&quot; + environment + &quot;.stamps.com/swsim/swsim-v&quot; + swsimEndPointup + &quot;.asmx&quot;
+	}
+	else
+	{
+  		swsimEndPointup = &quot;https://swsim.&quot; + environment + &quot;.stamps.com/swsim/swsimv&quot; + swsimEndPointup + &quot;.asmx&quot;
+	}
+
+	println swsimEndPointup
+  	def testCommand = testRunner + &apos; &apos; + &apos;&quot;&apos; + testProject + &apos;&quot;&apos; + &apos; &apos; + &quot;-PServiceEndpoint=&quot; + &apos;&quot;&apos; + swsimEndPointup + &apos;&quot;&apos; + &apos; &apos; + &quot;-PRunTestSuites=&quot; + &apos;&quot;&apos; + testSuite + &apos;&quot;&apos;  + &apos; &apos; + &quot;-Prunenvironment=&quot; + &apos;&quot;&apos; + environment + &apos;&quot;&apos;  + &apos; &apos; + &quot;-Pswsimvernumber=&quot; + &apos;&quot;&apos; + swsimEndPoint + &apos;&quot;&apos;    
+    println testCommand
+    
+    new File(&quot;C:/TCS/Sumit/Approach-1_Latest_Update_Git/Source/Working/DummyRepository1/Logs&quot;).mkdir();
+    File file = new File(&quot;C:/TCS/Sumit/Approach-1_Latest_Update_Git/Source/Working/DummyRepository1/Logs/Command_${environment}.bat&quot;)
+    file.write(testCommand)
+    //File file1 = new File(&quot;C:/TCS/Sumit/Approach-1_Latest_Update_Git/Source/Working/DummyRepository1/Logs/MasterCommand.bat&quot;)
+    def master = &quot;Call&quot; + &quot; &quot; + &quot;C:/TCS/Sumit/Approach-1_Latest_Update_Git/Source/Working/DummyRepository1/Logs/Command_${environment}.bat&quot; + &quot; &quot; + &apos;\n&apos; + &quot;timeout 10&quot; + &apos;\n&apos;
+    file1.append(master)
+    
+}
+
+</command>
+      </scriptSource>
+      <groovyName>(Default)</groovyName>
+      <parameters></parameters>
+      <scriptParameters></scriptParameters>
+      <properties></properties>
+      <javaOpts></javaOpts>
+      <classPath></classPath>
+    </hudson.plugins.groovy.Groovy>
+    <hudson.tasks.BatchFile>
+      <command>&quot;C:\TCS\Sumit\Approach-1_Latest_Update_Git\Source\Working\DummyRepository1\Logs\MasterCommand.bat&quot;</command>
+    </hudson.tasks.BatchFile>
+  </builders>
+  <publishers>
+    <htmlpublisher.HtmlPublisher plugin="htmlpublisher@1.17">
+      <reportTargets>
+        <htmlpublisher.HtmlPublisherTarget>
+          <reportName>Build Report</reportName>
+          <reportDir></reportDir>
+          <reportFiles>B*.html</reportFiles>
+          <alwaysLinkToLastBuild>true</alwaysLinkToLastBuild>
+          <reportTitles>Build_Summary</reportTitles>
+          <keepAll>true</keepAll>
+          <allowMissing>true</allowMissing>
+          <includes>**/*</includes>
+          <escapeUnderscores>true</escapeUnderscores>
+        </htmlpublisher.HtmlPublisherTarget>
+        <htmlpublisher.HtmlPublisherTarget>
+          <reportName>Test Level Summary</reportName>
+          <reportDir></reportDir>
+          <reportFiles>R*.html</reportFiles>
+          <alwaysLinkToLastBuild>true</alwaysLinkToLastBuild>
+          <reportTitles>Test_Level_Summary</reportTitles>
+          <keepAll>true</keepAll>
+          <allowMissing>true</allowMissing>
+          <includes>**/*</includes>
+          <escapeUnderscores>true</escapeUnderscores>
+        </htmlpublisher.HtmlPublisherTarget>
+      </reportTargets>
+    </htmlpublisher.HtmlPublisher>
+    <hudson.tasks.Mailer plugin="mailer@1.21">
+      <recipients>sample@stamps.com</recipients>
+      <dontNotifyEveryUnstableBuild>false</dontNotifyEveryUnstableBuild>
+      <sendToIndividuals>false</sendToIndividuals>
+    </hudson.tasks.Mailer>
+    <hudson.plugins.emailext.ExtendedEmailPublisher plugin="email-ext@2.63">
+      <recipientList></recipientList>
+      <configuredTriggers>
+        <hudson.plugins.emailext.plugins.trigger.FailureTrigger>
+          <email>
+            <subject>$PROJECT_DEFAULT_SUBJECT</subject>
+            <body>$PROJECT_DEFAULT_CONTENT</body>
+            <recipientProviders>
+              <hudson.plugins.emailext.plugins.recipients.ListRecipientProvider/>
+            </recipientProviders>
+            <attachmentsPattern></attachmentsPattern>
+            <attachBuildLog>false</attachBuildLog>
+            <compressBuildLog>false</compressBuildLog>
+            <replyTo>$PROJECT_DEFAULT_REPLYTO</replyTo>
+            <contentType>project</contentType>
+          </email>
+        </hudson.plugins.emailext.plugins.trigger.FailureTrigger>
+        <hudson.plugins.emailext.plugins.trigger.SuccessTrigger>
+          <email>
+            <subject>$PROJECT_DEFAULT_SUBJECT</subject>
+            <body>$PROJECT_DEFAULT_CONTENT</body>
+            <recipientProviders>
+              <hudson.plugins.emailext.plugins.recipients.ListRecipientProvider/>
+            </recipientProviders>
+            <attachmentsPattern></attachmentsPattern>
+            <attachBuildLog>false</attachBuildLog>
+            <compressBuildLog>false</compressBuildLog>
+            <replyTo>$PROJECT_DEFAULT_REPLYTO</replyTo>
+            <contentType>project</contentType>
+          </email>
+        </hudson.plugins.emailext.plugins.trigger.SuccessTrigger>
+        <hudson.plugins.emailext.plugins.trigger.FixedTrigger>
+          <email>
+            <subject>$PROJECT_DEFAULT_SUBJECT</subject>
+            <body>$PROJECT_DEFAULT_CONTENT</body>
+            <recipientProviders>
+              <hudson.plugins.emailext.plugins.recipients.ListRecipientProvider/>
+            </recipientProviders>
+            <attachmentsPattern></attachmentsPattern>
+            <attachBuildLog>false</attachBuildLog>
+            <compressBuildLog>false</compressBuildLog>
+            <replyTo>$PROJECT_DEFAULT_REPLYTO</replyTo>
+            <contentType>project</contentType>
+          </email>
+        </hudson.plugins.emailext.plugins.trigger.FixedTrigger>
+      </configuredTriggers>
+      <contentType>default</contentType>
+      <defaultSubject>Jenkins --$DEFAULT_SUBJECT : Summary Status</defaultSubject>
+      <defaultContent>Hello QA Team,
+
+Please find below Jenkins Run Report. Please find detailed report in attachment .
+
+$DEFAULT_CONTENT
+
+From,
+Jenkins</defaultContent>
+      <attachmentsPattern>T*.html</attachmentsPattern>
+      <presendScript>$DEFAULT_PRESEND_SCRIPT</presendScript>
+      <postsendScript>$DEFAULT_POSTSEND_SCRIPT</postsendScript>
+      <attachBuildLog>true</attachBuildLog>
+      <compressBuildLog>true</compressBuildLog>
+      <replyTo>$DEFAULT_REPLYTO</replyTo>
+      <from></from>
+      <saveOutput>false</saveOutput>
+      <disabled>false</disabled>
+    </hudson.plugins.emailext.ExtendedEmailPublisher>
+    <hudson.plugins.ws__cleanup.WsCleanup plugin="ws-cleanup@0.34">
+      <patterns>
+        <hudson.plugins.ws__cleanup.Pattern>
+          <pattern>*.*</pattern>
+          <type>INCLUDE</type>
+        </hudson.plugins.ws__cleanup.Pattern>
+      </patterns>
+      <deleteDirs>true</deleteDirs>
+      <skipWhenFailed>false</skipWhenFailed>
+      <cleanWhenSuccess>true</cleanWhenSuccess>
+      <cleanWhenUnstable>true</cleanWhenUnstable>
+      <cleanWhenFailure>true</cleanWhenFailure>
+      <cleanWhenNotBuilt>true</cleanWhenNotBuilt>
+      <cleanWhenAborted>true</cleanWhenAborted>
+      <notFailBuild>true</notFailBuild>
+      <cleanupMatrixParent>false</cleanupMatrixParent>
+      <externalDelete></externalDelete>
+    </hudson.plugins.ws__cleanup.WsCleanup>
+  </publishers>
+  <buildWrappers/>
+</project>
